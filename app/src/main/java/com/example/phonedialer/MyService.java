@@ -23,7 +23,6 @@ public class MyService extends Service {
     public void onCreate() {
 
         Log.d("service", "Service Created");
-
     }
 
     @Override
