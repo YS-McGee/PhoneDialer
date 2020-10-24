@@ -230,8 +230,6 @@ public class MainActivity extends AppCompatActivity {
             wifiSwitch.setChecked(false);
             wifiSwitch.setText("Wi-Fi                   Off");
         }
-
-
     }
 
     @Override
