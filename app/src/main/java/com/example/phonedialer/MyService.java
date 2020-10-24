@@ -9,9 +9,6 @@ import android.os.SystemClock;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.CheckBox;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -52,13 +49,6 @@ public class MyService extends Service {
         final NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
         // notificationId is a unique int for each notification that you must define
 
-        Runnable connectivity = new Runnable() {
-            @Override
-            public void run() {
-
-            }
-        };
-
         Runnable notif = new Runnable() {
             public void run() {
                 // Log.d("Thread", "Room Service. Hi!!!!!");
@@ -80,7 +70,7 @@ public class MyService extends Service {
                 // Log.d("service", "testing state");
 
                 TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-                while(true) {
+                while (true) {
                     SystemClock.sleep(500);
                     Log.d("test", TelephonyManager.EXTRA_STATE);
 //                    int s = tm.getCallState();
