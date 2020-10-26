@@ -131,5 +131,4 @@ public class PacketSniffer implements Runnable {
             process.destroy();
         }
     }
-
 }
