@@ -1,5 +1,6 @@
 package com.example.phonedialer;
 
+import android.nfc.Tag;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -49,8 +50,10 @@ public class PacketSniffer implements Runnable {
 
             // 輸出格式:
             //   TT IP XX.XX.XX.XX.PORT > XX.XX.XX.XX.PORT: UDP, length NN
-            while (looping && ((line = reader.readLine()) != null)) {
-                String[] arr = line.trim().split(" +");
+            // while (looping && ((line = reader.readLine()) != null)) {
+            while ((line = reader.readLine()) != null) {
+                // Log.d(TAG, line);
+                 String[] arr = line.trim().split(" +");
 
                 if (arr.length < 8) continue;
                 // 非 IP4 封包
@@ -76,11 +79,11 @@ public class PacketSniffer implements Runnable {
                         .append(len).toString()
                 );
 
-                // 決策樹分析
+                 // 決策樹分析
                 if (len >= 160){
                     // TODO - 正確的判斷傳送方向
                     int dir = dst.startsWith("192") ? StateTracer.Direction.DOWNWARD.value
-                            : StateTracer.Direction.UPWARD.value;
+                                                    : StateTracer.Direction.UPWARD.value;
 
                     int nextState = tracer.nextState(dir, len);
                     if ( nextState != tracer.getState() ){
@@ -93,9 +96,11 @@ public class PacketSniffer implements Runnable {
                         Log.d(TAG, "State "+tracer.getState());
                     }
 
-                }else{
-                    // 判斷網路速率
                 }
+
+                // 分析 packets
+                //
+
 
             }
             Log.d(TAG, "-- Captured Packets end --");
