@@ -20,10 +20,11 @@
             android:layout_width="170dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="36dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="16dp"
             android:layout_marginEnd="225dp"
+            android:layout_marginBottom="32dp"
             android:text="Wi-Fi                   Off"
-            app:layout_constraintBottom_toTopOf="@+id/callState_textView"
+            app:layout_constraintBottom_toTopOf="@+id/interface_textView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
@@ -34,9 +35,9 @@
             android:layout_width="170dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="36dp"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="32dp"
             android:layout_marginEnd="225dp"
-            android:layout_marginBottom="8dp"
+            android:layout_marginBottom="16dp"
             android:text="Internet              Off"
             android:textColor="#000000"
             app:layout_constraintBottom_toTopOf="@+id/mobileTextview"
@@ -47,25 +48,13 @@
             app:layout_constraintVertical_bias="0.26" />
 
         <TextView
-            android:id="@+id/callState_textView"
-            android:layout_width="wrap_content"
-            android:layout_height="41dp"
-            android:layout_marginStart="36dp"
-            android:layout_marginTop="36dp"
-            android:layout_weight="2"
-            android:text="Call State    IDLE"
-            android:textSize="24sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/wifi_switch" />
-
-        <TextView
             android:id="@+id/mobileTextview"
             android:layout_width="170dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="36dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="16dp"
             android:layout_marginEnd="225dp"
-            android:layout_marginBottom="8dp"
+            android:layout_marginBottom="16dp"
             android:text="Mobile Data       Off"
             android:textColor="#000000"
             app:layout_constraintBottom_toTopOf="@+id/wifi_switch"
@@ -86,8 +75,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/callState_textView"
-            app:layout_constraintVertical_bias="0.223" />
+            app:layout_constraintTop_toBottomOf="@+id/wifi_switch" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
