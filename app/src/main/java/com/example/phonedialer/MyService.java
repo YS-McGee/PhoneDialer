@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.IBinder;
-import android.os.SystemClock;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -22,59 +21,37 @@ public class MyService extends Service {
     private PhoneStateListener listener;
     private boolean isOnCall;
 
-    public PacketSniffer sniffer;
+    PacketSniffer sniffer = new PacketSniffer();
+    Thread innerThread = new Thread(sniffer);
 
-//    public class CallReceiver  extends BroadcastReceiver {
-//
-//        @Override
-//        public void onReceive(Context context, Intent intent) {
-//            if (intent.getStringExtra(TelephonyManager.EXTRA_STATE).equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
-//                // sniffer.run();
-//                Log.d("callstate", "Call Started...");
-//                Toast.makeText(context, "Call Started...", Toast.LENGTH_LONG).show();
-//            }
-//            else if (intent.getStringExtra(TelephonyManager.EXTRA_STATE).equals(TelephonyManager.EXTRA_STATE_IDLE)) {
-//                Log.d("callstate", "Call ended...");
-//                Toast.makeText(context, "Call Ended...", Toast.LENGTH_LONG).show();
-//                sniffer.stop();
-//            }
-//            else if (intent.getStringExtra(TelephonyManager.EXTRA_STATE).equals(TelephonyManager.EXTRA_STATE_RINGING)) {
-//                Log.d("callstate", "Incoming call..");
-//                Toast.makeText(context, "Incoming Call...", Toast.LENGTH_LONG).show();
-//                // callStateTextView.setText("Call State  Incoming Call...");
-//            }
-//        }
-//    }
+    private BroadcastReceiver bcReceiver;
 
+    public class CallReceiver  extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getStringExtra(TelephonyManager.EXTRA_STATE).equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
+                Log.d("callstate", "Call Started...");
+                Toast.makeText(context, "Call Started...", Toast.LENGTH_LONG).show();
+            }
+            else if (intent.getStringExtra(TelephonyManager.EXTRA_STATE).equals(TelephonyManager.EXTRA_STATE_IDLE)) {
+                Log.d("callstate", "Call ended...");
+                Toast.makeText(context, "Call Ended...", Toast.LENGTH_LONG).show();
+                sniffer.stop();
+            }
+            else if (intent.getStringExtra(TelephonyManager.EXTRA_STATE).equals(TelephonyManager.EXTRA_STATE_RINGING)) {
+                Log.d("callstate", "Incoming call..");
+                Toast.makeText(context, "Incoming Call...", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
 
     @Override
     public void onCreate() {
 
-        class CallReceiver extends BroadcastReceiver {
-
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                if (intent.getStringExtra(TelephonyManager.EXTRA_STATE).equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
-                    // sniffer.run();
-                    Log.d("callstate", "Call Started...");
-                    Toast.makeText(context, "Call Started...", Toast.LENGTH_LONG).show();
-                }
-                else if (intent.getStringExtra(TelephonyManager.EXTRA_STATE).equals(TelephonyManager.EXTRA_STATE_IDLE)) {
-                    Log.d("callstate", "Call ended...");
-                    Toast.makeText(context, "Call Ended...", Toast.LENGTH_LONG).show();
-                    sniffer.stop();
-                }
-                else if (intent.getStringExtra(TelephonyManager.EXTRA_STATE).equals(TelephonyManager.EXTRA_STATE_RINGING)) {
-                    Log.d("callstate", "Incoming call..");
-                    Toast.makeText(context, "Incoming Call...", Toast.LENGTH_LONG).show();
-                    // callStateTextView.setText("Call State  Incoming Call...");
-                }
-            }
-        }
-
+        this.bcReceiver = new CallReceiver();
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("android.intent.action.PHONE_STATE");
-        this.registerReceiver(new CallReceiver(), intentFilter);
+        this.registerReceiver(this.bcReceiver, intentFilter);
 
         Log.d("service", "Service Created");
     }
@@ -105,16 +82,14 @@ public class MyService extends Service {
         Runnable notif = new Runnable() {
             public void run() {
                 Log.d("process", "notif thread run");
-                SystemClock.sleep(10000);
-                int i = 0;
                 notificationManager.notify(1, builder.build());
             }
         };
 
-//        sniffer = new PacketSniffer();
-//        Thread innerThread = new Thread(sniffer);
-//        innerThread.setPriority(Thread.MAX_PRIORITY);
-//        innerThread.start();
+        // PacketSniffer sniffer = new PacketSniffer();
+        // Thread innerThread = new Thread(sniffer);
+        innerThread.setPriority(Thread.MAX_PRIORITY);
+        innerThread.start();
 
         Thread n = new Thread(notif);
         n.setPriority(Thread.MAX_PRIORITY);
@@ -131,6 +106,8 @@ public class MyService extends Service {
     @Override
     public void onDestroy() {
         // Toast.makeText(this, "MyService Stopped", Toast.LENGTH_LONG).show();
+        this.unregisterReceiver(this.bcReceiver);
+
         Log.d("process", "Service Destroyed");
     }
 }
