@@ -1,12 +1,18 @@
 package com.example.phonedialer;
 
+import android.os.Build;
 import android.util.Log;
+import android.widget.Toast;
+
+import androidx.annotation.RequiresApi;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class PacketSniffer implements Runnable {
 
@@ -14,16 +20,41 @@ public class PacketSniffer implements Runnable {
     private Process process;
     private StateTracer tracer;
 
+    public PacketSniffer() {
+        looping = true;
+        tracer = new StateTracer();
+    }
+
     private final String TAG = "sniff";
     private final String[] commands = {
             "su", "-c",
             "tcpdump", "-ttt", "-q", "-n", "-l", "udp", "port", "4500", "-i", "any"
             //,"-c 10"
+            // su -c tcpdump -tttqnlS udp port 4500 -i any
     };
 
-    public PacketSniffer() {
-        looping = true;
-        tracer = new StateTracer();
+    private double pktNumber = 0, checker;
+    int flag = 0;
+    Timer timer = new Timer();
+
+    class checkPktTask extends TimerTask {
+        @RequiresApi(api = Build.VERSION_CODES.O)
+        public void run() {
+            // Log.d("sniff", "time's up");
+            // timer.cancel(); //Terminate the timer thread
+            Log.d("sniff", Double.toString(pktNumber));
+            if (pktNumber == 0) {
+                ++flag;
+                if (flag > 50) {
+                    while (true){
+                        Log.d("sniff", "ATK!!!!!!!!!!");
+                    }
+                }
+            } else {
+                flag = 0;
+            }
+            pktNumber = 0;
+        }
     }
 
     @Override
@@ -47,12 +78,18 @@ public class PacketSniffer implements Runnable {
         Scanner scanner = new Scanner(process.getInputStream());
         try {
             String time, ip, src, dst, protocol;
-            int len;
+            String [] str;
+            int len, index = 1, replace_index = 1; // pkt index
+            float ftime, avg_time = 0, tmp;
+            float [] farray = new float[105];
 
             // 輸出格式:
             //   TT IP XX.XX.XX.XX.PORT > XX.XX.XX.XX.PORT: UDP, length NN
             while (scanner.hasNext()) {
+                timer.schedule(new checkPktTask(), 6000);
                 time = scanner.next();
+                str = time.split(":");
+                ftime = Float.parseFloat(str[2]) * 1000000;
                 ip = scanner.next();
                 src = scanner.next();
                 scanner.next();
@@ -68,6 +105,9 @@ public class PacketSniffer implements Runnable {
                 if (!protocol.startsWith("UDP")) continue;
 
                 // TODO - 根據 IP 過濾封包
+
+                Log.d(TAG, time + "   " + (src.startsWith("192") ? "UE" : "ePDG") + " -> "
+                        + (dst.startsWith("192") ? "UE" : "ePDG") + " len = " + len );
 
                 Log.d(TAG, new StringBuilder(64).append(time)
                         .append("  ")
@@ -95,10 +135,26 @@ public class PacketSniffer implements Runnable {
                         Log.d(TAG, "State "+tracer.getState());
                     }
 
-                }else{
-                    // 判斷網路速率
                 }
 
+                // Here analyze the time stamp of each pkt
+                ++pktNumber;
+
+//                if (index <= 100) {
+//                    farray[index] = ftime;
+//                    avg_time = ((avg_time*(index-1)) + ftime)/index;
+//                    index ++;
+//                }
+//                else {
+//                    tmp = farray[replace_index];
+//                    avg_time += ((ftime - farray[replace_index])/100);
+//                    farray[replace_index] = ftime;
+//                    replace_index = (replace_index+1)%101;
+//                    if (replace_index == 0) {
+//                        replace_index = 1;
+//                    }
+//                }
+                // Log.d( "avg", "avg: "+ avg_time + " ftime: "  + ftime + " , index: " + (index-1) + " , replace_index: " + replace_index);
             }
             Log.d(TAG, "-- Captured Packets end --");
 
@@ -118,7 +174,7 @@ public class PacketSniffer implements Runnable {
             } catch (IOException e) {}
             Log.d(TAG, "-- Error Channel ends --");
         }
-
+        timer.cancel();
         Log.d(TAG, "Stopped.");
     }
 
