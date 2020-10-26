@@ -29,6 +29,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import java.io.IOException;
 
@@ -176,6 +177,12 @@ public class MainActivity extends AppCompatActivity {
         input = findViewById(R.id.editText);
 
         startService(new Intent(this, MyService.class));
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[] {Manifest.permission.READ_PHONE_STATE}, 1);
+        }
 
         Log.d("main", "Activity Created");
     }

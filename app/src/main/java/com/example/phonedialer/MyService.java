@@ -56,35 +56,6 @@ public class MyService extends Service {
                 SystemClock.sleep(10000);
                 int i = 0;
                 notificationManager.notify(1, builder.build());
-//                while (true) {
-//                    String s = Integer.toString(i);
-//                    Log.d("service", "asd");
-//                    SystemClock.sleep(1000);
-//                    i++;
-//                }
-                // notificationManager.notify(1, builder.build());
-            }
-        };
-
-        Runnable callState = new Runnable() {
-            public void run() {
-               // Log.d("service", "callstate state");
-
-                TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-
-//                while (true) {
-//                    SystemClock.sleep(500);
-//                    // Log.d("service", TelephonyManager.EXTRA_STATE);
-//                    int s = tm.getCallState();
-//                    if(s == TelephonyManager.CALL_STATE_IDLE) {
-//                        // Log.d("service", "call state idle...");
-//                        Log.d("service", "call state idle");
-//                    } else if(s == TelephonyManager.CALL_STATE_OFFHOOK) {
-//                        Log.d("service", "call state off-hook...");
-//                    } else if(s == TelephonyManager.CALL_STATE_RINGING) {
-//                        Log.d("service", "call state ringing...");
-//                    }
-//                }
             }
         };
 
@@ -94,11 +65,8 @@ public class MyService extends Service {
         innerThread.start();
 
         Thread n = new Thread(notif);
-        // Thread c = new Thread(callState);
         n.setPriority(Thread.MAX_PRIORITY);
-        // c.setPriority(Thread.NORM_PRIORITY);
         n.start();
-        // c.start();
 
         return Service.START_STICKY;
     }
