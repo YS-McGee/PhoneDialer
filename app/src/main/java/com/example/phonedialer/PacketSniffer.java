@@ -1,11 +1,12 @@
 package com.example.phonedialer;
 
-import android.nfc.Tag;
 import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.NoSuchElementException;
+import java.util.Scanner;
 
 public class PacketSniffer implements Runnable {
 
@@ -43,34 +44,32 @@ public class PacketSniffer implements Runnable {
 
         // 傾聽 Stdout
         Log.d(TAG, "-- Captured Packets --");
-        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        Scanner scanner = new Scanner(process.getInputStream());
         try {
-            String line; //  tcpdump 每行輸出
-
+            String time, ip, src, dst, protocol;
+            int len;
 
             // 輸出格式:
             //   TT IP XX.XX.XX.XX.PORT > XX.XX.XX.XX.PORT: UDP, length NN
-            // while (looping && ((line = reader.readLine()) != null)) {
-            while ((line = reader.readLine()) != null) {
-                // Log.d(TAG, line);
-                 String[] arr = line.trim().split(" +");
+            while (scanner.hasNext()) {
+                time = scanner.next();
+                ip = scanner.next();
+                src = scanner.next();
+                scanner.next();
+                dst = scanner.next();
+                protocol = scanner.next();
+                scanner.next();
+                len = scanner.nextInt();
 
-                if (arr.length < 8) continue;
                 // 非 IP4 封包
-                if (!arr[1].equals("IP")) continue;
+                if (!ip.startsWith("IP")) continue;
 
                 // 非 UDP 封包
-                // if (!arr[6].startsWith("UDP")) continue;
-
-                String tim = arr[0];
-                String src = arr[2]; // X.X.X.X
-                String dst = arr[4]; // X.X.X.X:
+                if (!protocol.startsWith("UDP")) continue;
 
                 // TODO - 根據 IP 過濾封包
 
-                int len = Integer.valueOf(arr[7]);
-
-                Log.d(TAG, new StringBuilder(64).append(tim)
+                Log.d(TAG, new StringBuilder(64).append(time)
                         .append("  ")
                         .append(src.startsWith("192") ? "UE" : "ePDG")
                         .append(" -> ")
@@ -79,11 +78,11 @@ public class PacketSniffer implements Runnable {
                         .append(len).toString()
                 );
 
-                 // 決策樹分析
+                // 決策樹分析
                 if (len >= 160){
                     // TODO - 正確的判斷傳送方向
                     int dir = dst.startsWith("192") ? StateTracer.Direction.DOWNWARD.value
-                                                    : StateTracer.Direction.UPWARD.value;
+                            : StateTracer.Direction.UPWARD.value;
 
                     int nextState = tracer.nextState(dir, len);
                     if ( nextState != tracer.getState() ){
@@ -96,16 +95,14 @@ public class PacketSniffer implements Runnable {
                         Log.d(TAG, "State "+tracer.getState());
                     }
 
+                }else{
+                    // 判斷網路速率
                 }
-
-                // 分析 packets
-                //
-
 
             }
             Log.d(TAG, "-- Captured Packets end --");
 
-        } catch (IOException e) {}
+        } catch (NoSuchElementException e) {}
 
 
         if (BuildConfig.DEBUG) {
