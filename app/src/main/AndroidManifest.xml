@@ -34,14 +34,15 @@
         <service
             android:enabled="true"
             android:name=".MyService"/>
-        <receiver
-            android:name="CallReceiver"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.PHONE_STATE" />
-            </intent-filter>
-        </receiver>
+<!--        <receiver-->
+<!--            android:name=".MyService$CallReceiver"-->
+<!--            android:enabled="true"-->
+<!--            android:exported="true"-->
+<!--            tools:ignore="Instantiatable,MissingClass">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.PHONE_STATE" />-->
+<!--            </intent-filter>-->
+<!--        </receiver>-->
 
     </application>
 

@@ -62,6 +62,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Optional<LinkProperties> wifiLink;
 
+    Intent myservice;
+
     public void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence name = getString(R.string.channel_name);
@@ -160,6 +162,8 @@ public class MainActivity extends AppCompatActivity {
 
         createNotificationChannel();
 
+        myservice = new Intent(this, MyService.class);
+
         btnOne = findViewById(R.id.buttonOne);
         btnTwo = findViewById(R.id.buttonTwo);
         btnThree = findViewById(R.id.buttonThree);
@@ -176,7 +180,8 @@ public class MainActivity extends AppCompatActivity {
         btnDial = findViewById(R.id.buttonDial);
         input = findViewById(R.id.editText);
 
-        startService(new Intent(this, MyService.class));
+        // startService(new Intent(this, MyService.class));
+        startService(myservice);
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -188,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart() {
+    public void onStart() {
         super.onStart();
         Log.d("main", "Activity Started");
 
@@ -300,8 +305,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Intent service = new Intent(this, MyService.class);
-        stopService(service);
+        stopService(myservice);
         Log.d("main", "Activity Destroyed");
     }
 }

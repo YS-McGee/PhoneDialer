@@ -2,13 +2,16 @@ package com.example.phonedialer;
 
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -19,12 +22,35 @@ public class MyService extends Service {
     private PhoneStateListener listener;
     private boolean isOnCall;
 
-    private PacketSniffer sniffer;
+    public PacketSniffer sniffer;
+
+    public class CallReceiver  extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getStringExtra(TelephonyManager.EXTRA_STATE).equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
+                Log.d("callstate", "Call Started...");
+                Toast.makeText(context, "Call Started...", Toast.LENGTH_LONG).show();
+            }
+            else if (intent.getStringExtra(TelephonyManager.EXTRA_STATE).equals(TelephonyManager.EXTRA_STATE_IDLE)) {
+                Log.d("callstate", "Call ended...");
+                Toast.makeText(context, "Call Ended...", Toast.LENGTH_LONG).show();
+                sniffer.stop();
+            }
+            else if (intent.getStringExtra(TelephonyManager.EXTRA_STATE).equals(TelephonyManager.EXTRA_STATE_RINGING)) {
+                Log.d("callstate", "Incoming call..");
+                Toast.makeText(context, "Incoming Call...", Toast.LENGTH_LONG).show();
+                // callStateTextView.setText("Call State  Incoming Call...");
+            }
+        }
+    }
 
     @Override
     public void onCreate() {
-        Log.d("service", "Service Created");
+        final IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("android.intent.action.PHONE_STATE");
+        this.registerReceiver(new CallReceiver(), intentFilter);
 
+        Log.d("service", "Service Created");
     }
 
     @Override
