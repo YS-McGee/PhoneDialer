@@ -141,12 +141,10 @@ public class PacketSniffer implements Runnable {
                 packetOptional = executorService.submit(receivePacket).get( timeout, TimeUnit.SECONDS);
             }catch ( TimeoutException e){
                 Log.e(TAG, "Next Packet Timeout");
-
-                // TODO notification
+                service.createAlert();
                 break;
             }catch ( ExecutionException e){
                 Log.e(TAG, "Something went wrong.");
-                service.createAlert();
                 break;
             }catch ( InterruptedException e){
                 continue;
