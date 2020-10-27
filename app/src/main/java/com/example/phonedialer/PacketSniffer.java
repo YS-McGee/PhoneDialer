@@ -156,12 +156,12 @@ public class PacketSniffer implements Runnable {
             else packet = packetOptional.get();
 
             StateTracer.Direction dir = packet.src.startsWith(hostToken) ? StateTracer.Direction.UPWARD
-                    : StateTracer.Direction.UPWARD;
+                    : StateTracer.Direction.DOWNWARD;
 
             Log.d(TAG, new StringBuilder(64)
                     .append(packet.time)
                     .append("  ")
-                    .append(dir== StateTracer.Direction.UPWARD ? "UE" : "ePDG")
+                    .append(dir == StateTracer.Direction.UPWARD ? "UE" : "ePDG")
                     .append(" -> ")
                     .append(dir== StateTracer.Direction.DOWNWARD ? "UE" : "ePDG")
                     .append(" len = ")
