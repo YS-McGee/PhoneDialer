@@ -7,6 +7,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.os.IBinder;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -15,6 +18,9 @@ import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+
+import java.util.Arrays;
+import java.util.Optional;
 
 public class MyService extends Service {
 
@@ -25,8 +31,8 @@ public class MyService extends Service {
     private final int notificationId_main = 666;
     private final int notificationId_alert = 777;
 
-    PacketSniffer sniffer = new PacketSniffer();
-    Thread innerThread = new Thread(sniffer);
+    PacketSniffer sniffer;
+    Thread innerThread;
 
     private BroadcastReceiver bcReceiver;
 
@@ -51,6 +57,32 @@ public class MyService extends Service {
 
     @Override
     public void onCreate() {
+
+        ConnectivityManager manager = (ConnectivityManager)getSystemService(ConnectivityManager.class);
+        Optional<Network> networkOptional = Arrays.stream(manager.getAllNetworks())
+                .filter( n -> manager.getNetworkCapabilities(n).hasTransport(NetworkCapabilities.TRANSPORT_WIFI))
+                .findFirst();
+
+        if (!networkOptional.isPresent()){
+            Log.e("service", "Unable to find wifi interface.");
+            return;
+        }
+
+        Optional<String >ip = manager.getLinkProperties(networkOptional.get()).getLinkAddresses().stream()
+                .map( l -> l.getAddress())
+                .filter( k -> !k.isLoopbackAddress())
+                .map( i -> i.getHostAddress())
+                .filter( h -> h.indexOf(":")<0)
+                .findFirst();
+
+        if (!ip.isPresent()){
+            Log.e("service", "Unable to get IP address");
+        }
+
+        String ipToken = ip.get().split("\\.")[0];
+
+        sniffer = new PacketSniffer(ipToken);
+        innerThread = new Thread(sniffer);
 
         this.bcReceiver = new CallReceiver();
         final IntentFilter intentFilter = new IntentFilter();
@@ -115,7 +147,6 @@ public class MyService extends Service {
 
     @Override
     public void onDestroy() {
-        // Toast.makeText(this, "MyService Stopped", Toast.LENGTH_LONG).show();
         this.unregisterReceiver(this.bcReceiver);
 
         Log.d("process", "Service Destroyed");

@@ -18,10 +18,15 @@ public class PacketSniffer implements Runnable {
     private boolean looping;
     private Process process;
     private final StateTracer tracer;
+    private final String hostToken;
 
-    public PacketSniffer() {
+    public PacketSniffer(String hostToken) {
         looping = true;
         tracer = new StateTracer(8);
+
+        this.hostToken = hostToken;
+
+        Log.d(TAG, "Host Token: "+hostToken);
     }
 
     private final String TAG = "sniff";
@@ -76,8 +81,12 @@ public class PacketSniffer implements Runnable {
         Log.d(TAG, "-- Captured Packets --");
         Scanner scanner = new Scanner(process.getInputStream());
         try {
-            String time, ip, src, dst, protocol;
-            String [] str;
+
+            String timeStr;
+            long time;
+
+            String ip, src, dst, protocol;
+
             int len, index = 1, replace_index = 1; // pkt index
             float ftime, avg_time = 0, tmp;
             float [] farray = new float[105];
@@ -85,10 +94,7 @@ public class PacketSniffer implements Runnable {
             // 輸出格式:
             //   TT IP XX.XX.XX.XX.PORT > XX.XX.XX.XX.PORT: UDP, length NN
             while (scanner.hasNext()) {
-                timer.schedule(new checkPktTask(), 6000);
-                time = scanner.next();
-                str = time.split(":");
-                ftime = Float.parseFloat(str[2]) * 1000000;
+                timeStr = scanner.next();
                 ip = scanner.next();
                 src = scanner.next();
                 scanner.next();
@@ -105,21 +111,28 @@ public class PacketSniffer implements Runnable {
 
                 // TODO - 根據 IP 過濾封包
 
-                Log.d(TAG, new StringBuilder(64).append(time)
+                // 解析時間
+                timeStr = timeStr.substring(timeStr.lastIndexOf(':')+1);
+                timeStr = timeStr.replace('.', '0');
+                time = Long.valueOf(timeStr);
+                time = time/10000000 + time%1000000;
+
+                Log.d(TAG, new StringBuilder(64)
+                        .append(timeStr)
+                        .append('\t')
+                        .append(time)
                         .append("  ")
-                        .append(src.startsWith("192") ? "UE" : "ePDG")
+                        .append(src.startsWith(hostToken) ? "UE" : "ePDG")
                         .append(" -> ")
-                        .append(dst.startsWith("192") ? "UE" : "ePDG")
+                        .append(dst.startsWith(hostToken) ? "UE" : "ePDG")
                         .append(" len = ")
                         .append(len).toString()
                 );
 
                 // 決策樹分析
-                // TODO - 正確的判斷傳送方向
-                StateTracer.Direction dir = dst.startsWith("192") ? StateTracer.Direction.DOWNWARD
+                StateTracer.Direction dir = dst.startsWith(hostToken) ? StateTracer.Direction.DOWNWARD
                         : StateTracer.Direction.UPWARD;
                 tracer.nextState(dir, len);
-
 
                 // Here analyze the time stamp of each pkt
                 ++pktNumber;
