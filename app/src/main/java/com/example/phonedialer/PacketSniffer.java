@@ -108,10 +108,14 @@ public class PacketSniffer implements Runnable {
 
         // 輸出格式:
         //   TT IP XX.XX.XX.XX.PORT > XX.XX.XX.XX.PORT: UDP, length NN
+        int counter = 0;
+        String left, right;
+        Boolean boo = true;
         while (scanner.hasNext()) {
 
             try{
                 packetOptional = executorService.submit(receivePacket).get( timeout, TimeUnit.SECONDS);
+
             }catch ( TimeoutException e){
                 Log.e(TAG, "Next Packet Timeout");
                 service.createAlert();
@@ -120,10 +124,8 @@ public class PacketSniffer implements Runnable {
                 Log.e(TAG, "Something went wrong.");
                 break;
             }catch ( InterruptedException e){
-                Log.e(TAG, "InterrruptedException");
                 continue;
             }catch ( CancellationException e){
-                Log.e(TAG, "CancellationException");
                 break;
             }
 
@@ -143,14 +145,22 @@ public class PacketSniffer implements Runnable {
                     .append(packet.length).toString()
             );
 
+
+            if (dir == StateTracer.Direction.UPWARD ) {
+                ++counter;
+                if (counter > 15 && boo ) {
+                    service.createAlert();
+                    boo = false;
+                }
+            } else {
+                counter = 0;
+            }
+
             // 決策樹分析
             StateTracer.State old = tracer.getState();
             StateTracer.State next = tracer.nextState(dir, packet.length);
 
-            if (next == StateTracer.State.ERROR14 || tracer.isTimeout()){
-                Log.d(TAG, "Error detected.");
-                service.createAlert();
-            }else if (old != next){
+            if (old != next){
                 service.updateStateInNotification(next.toString());
             }
 
