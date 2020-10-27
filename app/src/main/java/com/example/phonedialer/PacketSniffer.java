@@ -171,8 +171,12 @@ public class PacketSniffer implements Runnable {
             );
 
             // 決策樹分析
-            tracer.nextState(dir, packet.length);
+            StateTracer.State old = tracer.getState();
+            StateTracer.State next = tracer.nextState(dir, packet.length);
 
+            if (old != next){
+                service.updateStateInNotification(next.toString());
+            }
 
             // Here analyze the time stamp of each pkt
 //                ++pktNumber;

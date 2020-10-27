@@ -140,6 +140,18 @@ public class MyService extends Service {
         notificationManager.notify(notificationId_alert, builder.build());
     }
 
+    void updateStateInNotification(String stateInfo){
+        String channelId = getString(R.string.channel_id);
+        Notification notification = new NotificationCompat.Builder(this, channelId)
+                .setSmallIcon(android.R.drawable.alert_light_frame)
+                .setContentTitle(getString(R.string.channel_name))
+                .setContentText(getString(R.string.notfication_state_description)+stateInfo)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .build();
+
+        NotificationManagerCompat.from(this).notify(notificationId_main, notification);
+    }
+
     @Override
     public IBinder onBind(Intent intent) {
         return null;
