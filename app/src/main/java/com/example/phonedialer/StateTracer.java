@@ -11,7 +11,7 @@ public class StateTracer{
 
     // States during VoWifi conversation
     public enum State {
-        NONE, INVITE1, TRYING2, SESSION3, PRACK4, OK5, RINGING6, PRACK7, OK8, OK9, ACK10, VOICE11, BYE12, OK13
+        NONE, INVITE1, TRYING2, SESSION3, PRACK4, OK5, RINGING6, PRACK7, OK8, OK9, ACK10, VOICE11, BYE12, OK13, ERROR14;
     }
 
     // Directions indicate the packet flow
@@ -27,13 +27,19 @@ public class StateTracer{
     private final int maxStair;
     private int step;
 
+    private final int maxErrorStair;
+    private int errorStep;
+
     private final State[] floorArr = {State.NONE, State.RINGING6, State.VOICE11};
     private int floor;
+
+    private boolean acquireBye;
     
     private State state;
 
-    public StateTracer(int restoreStair){
+    public StateTracer(int restoreStair, int errorStep){
         maxStair = restoreStair;
+        maxErrorStair = errorStep;
 
         initial();
     }
@@ -43,6 +49,7 @@ public class StateTracer{
         floor = 0;
 
         step = maxStair;
+        errorStep = maxErrorStair;
     }
 
     public State nextState(Direction direction, int length){
@@ -50,9 +57,17 @@ public class StateTracer{
 
         Log.d(TAG, "State -> "+next);
 
-        // TODO - 恢復機制失敗
-        if (next != state)
+
+        if (next == State.ERROR14){
+            --errorStep;
+
+            if (errorStep < 0){
+                return State.ERROR14;
+            }
+        }else if (next != state)
         {
+            errorStep = maxErrorStair;
+
             int target = Arrays.binarySearch(floorArr, next);
 
             if (target >= 0){
@@ -92,7 +107,10 @@ public class StateTracer{
                 //Area1
 
                 if (dir == Direction.UPWARD) {
-
+                    // Error
+                    if (800 < len && len < 1500){
+                        return State.ERROR14;
+                    }
                 } else {
                     if (250 < len && len < 600) {
                         next = State.TRYING2;
@@ -125,6 +143,8 @@ public class StateTracer{
                 if (dir == Direction.UPWARD) {
                     if (250 < len && len < 1500)
                         next = State.OK5;
+                    else if (800 < len && len < 1500)
+                        next = State.ERROR14;
                 } else {
                     if (250 < len && len < 1500)
                         next = State.OK5;
@@ -151,7 +171,8 @@ public class StateTracer{
                 break;
             case PRACK7:
                 if (dir == Direction.UPWARD) {
-
+                    if (800 < len && len < 1500)
+                        next = State.ERROR14;
                 } else {
                     if (250 < len)
                         next = State.OK8;
@@ -175,8 +196,10 @@ public class StateTracer{
                 break;
             case ACK10:
                 if (dir == Direction.UPWARD) {
-                    if (250 < len)
+                    if (250 < len && len < 400)
                         next = State.VOICE11;
+                    else if (400 < len && len < 1500)
+                        next = State.ERROR14;
                 } else {
                     if (250 < len)
                         next = State.VOICE11;
@@ -184,13 +207,23 @@ public class StateTracer{
                 break;
             case VOICE11:
                 // Area3
-                if (250 < len)
+                if (250 < len){
+                    if (dir == Direction.UPWARD) acquireBye = true;
+                    else acquireBye = false;
                     next = State.VOICE11;
+                }
 
                 break;
             case BYE12:
-                if (250 < len)
-                    next = State.OK13;
+                if (250 < len){
+                    if (acquireBye && dir == Direction.DOWNWARD){
+                        next = State.OK13;
+                    }else if (!acquireBye && dir == Direction.UPWARD){
+                        next = State.OK13;
+                    }else{
+                        next = State.ERROR14;
+                    }
+                }
 
                 break;
             case OK13:
