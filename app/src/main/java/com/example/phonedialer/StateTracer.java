@@ -1,20 +1,17 @@
 package com.example.phonedialer;
 
+import android.util.Log;
+
+import java.util.Arrays;
+
 public class StateTracer{
 
     // Tag for Logcat
     private final String TAG = getClass().getSimpleName();
 
-    // Decision Tree parameters
-    private final int[] lChilds = {1, 2, 3, 4, 5, -1, -1, -1, 9, 10, 11, -1, -1, -1, 15, -1, -1, 18, 19, 20, -1, -1, 23, -1, -1, 26, 27, 28, -1, -1, -1, 32, -1, 34, -1, 36, -1, -1, 39, 40, -1, -1, 43, 44, -1, -1, -1};
-    private final int[] rChilds = {38, 17, 8, 7, 6, -1, -1, -1, 14, 13, 12, -1, -1, -1, 16, -1, -1, 25, 22, 21, -1, -1, 24, -1, -1, 31, 30, 29, -1, -1, -1, 33, -1, 35, -1, 37, -1, -1, 42, 41, -1, -1, 46, 45, -1, -1, -1};
-    private final double[] thresholds = {9.5, 4.5, 0.0, 1.5, 0.5, -2.0, -2.0, -2.0, 3.0, 1.5, 326.0, -2.0, -2.0, -2.0, 430.0, -2.0, -2.0, 6.5, 430.0, 5.5, -2.0, -2.0, 902.0, -2.0, -2.0, 742.0, 0.0, 7.5, -2.0, -2.0, -2.0, 878.0, -2.0, 1054.0, -2.0, 7.5, -2.0, -2.0, 11.5, 486.0, -2.0, -2.0, 462.0, 12.5, -2.0, -2.0, -2.0};
-    private final int[] indices = {2, 2, 0, 2, 2, -2, -2, -2, 2, 2, 1, -2, -2, -2, 1, -2, -2, 2, 1, 2, -2, -2, 1, -2, -2, 1, 0, 2, -2, -2, -2, 1, -2, 1, -2, 2, -2, -2, 2, 1, -2, -2, 1, 2, -2, -2, -2};
-    private final int[][] classes = {{5, 9, 29, 9, 5, 1053, 3, 25, 3, 3, 1315, 12, 3}, {4, 9, 29, 9, 5, 1053, 3, 25, 3, 3, 0, 0, 0}, {4, 9, 29, 9, 3, 1, 0, 0, 0, 0, 0, 0, 0}, {4, 8, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {4, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {4, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 1, 29, 0, 3, 1, 0, 0, 0, 0, 0, 0, 0}, {0, 1, 29, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 26, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 3, 1, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 2, 1052, 3, 25, 3, 3, 0, 0, 0}, {0, 0, 0, 0, 2, 1052, 0, 3, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 1, 1052, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 1, 3, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 1049, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 1, 0, 0, 3, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 3, 22, 3, 3, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 1, 20, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 18, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 2, 2, 3, 3, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 2, 2, 3, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0}, {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1315, 12, 3}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1315, 3, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1315, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0}, {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 3}, {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0}, {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3}};
-
     // States during VoWifi conversation
     public enum State {
-        NONE, INVITE1, TRYING2, SESSION3, PRACK4, OK5, RINGING6, OK7, OK8, OK9, ACK10, VOICE11, BYE12, OK13;
+        NONE, INVITE1, TRYING2, SESSION3, PRACK4, OK5, RINGING6, PRACK7, OK8, OK9, ACK10, VOICE11, BYE12, OK13
     }
 
     // Directions indicate the packet flow
@@ -27,78 +24,195 @@ public class StateTracer{
         }
     }
 
-    // Current state
-    private int state;
+    private final int maxStair;
+    private int step;
 
-    public StateTracer(){
-        state = State.NONE.ordinal();
+    private final State[] floorArr = {State.NONE, State.RINGING6, State.VOICE11};
+    private int floor;
+    
+    private State state;
+
+    public StateTracer(int restoreStair){
+        maxStair = restoreStair;
+
+        initial();
     }
 
-//    @Override
-//    public void run() {
-//        int oldstate;
-//        byte[] packet = new byte[3];
-//        try{
-//            // byte[0] as Direction, byte[1-2] as length
-//            while( pipe.read(packet, 0, 3) != -1 ){
-//                double dir = packet[0];
-//                double len = (((int)packet[1])<<8) & ((int)packet[2]);
-//
-//                Log.d(TAG, String.format("Read pipe: [%d, %d]", (int)dir, (int)len));
-//
-//                oldstate = state;
-//                state = nextState(new double[]{dir, len, state}, 0);
-//
-//                if (oldstate != state){
-//                    //State change
-//                    Log.d(TAG, "State: " + oldstate + " -> " + state);
-//                }else{
-//                    Log.d(TAG, "State: " + state);
-//                }
-//            }
-//        }catch(IOException e){
-//            e.printStackTrace();
-//        }
-//
-//    }
+    public void initial() {
+        state = State.NONE;
+        floor = 0;
 
-    public int nextState(Direction dir, int length) {
-        return this.nextState(new double[]{dir.value, length, state}, 0);
+        step = maxStair;
     }
 
-    int nextState(int dir, int length){
-        return this.nextState(new double[]{dir, length, state}, 0);
-    }
+    public State nextState(Direction direction, int length){
+        State next = predict(direction, length, state);
 
-    protected int nextState(double[] features, int node) {
-        if (this.thresholds[node] != -2) {
-            if (features[this.indices[node]] <= this.thresholds[node]) {
-                return nextState(features, this.lChilds[node]);
-            } else {
-                return nextState(features, this.rChilds[node]);
+        Log.d(TAG, "State -> "+next);
+
+        // TODO - 恢復機制失敗
+        if (next != state)
+        {
+            int target = Arrays.binarySearch(floorArr, next);
+
+            if (target >= 0){
+                floor = target;
             }
+
+            state = next;
+            resetStep();
+
+        }else if (state != floorArr[floor]){
+            if (step < 0){
+                state = floorArr[floor];
+                Log.d(TAG, "State timeout -> "+state);
+            }
+            --step;
         }
-        return findMax(this.classes[node]);
+
+        return next;
     }
 
-    private int findMax(int[] nums) {
-        int index = 0;
-        for (int i = 0; i < nums.length; i++) {
-            index = nums[i] > nums[index] ? i : index;
+    public State predict(Direction dir, int len, State oldState){
+        if (len < 0) return oldState;
+
+        // One packet, one transition
+        State next = oldState;
+
+        switch (oldState) {
+            case NONE:
+                if (dir == Direction.UPWARD) {
+                    if (800 < len && len < 1300)
+                        next = State.INVITE1;
+                } else {
+
+                }
+                break;
+            case INVITE1:
+                //Area1
+
+                if (dir == Direction.UPWARD) {
+
+                } else {
+                    if (250 < len && len < 600) {
+                        next = State.TRYING2;
+                    } else if (1100 < len && len < 1500) {
+                        next = State.SESSION3;
+                    }
+                }
+                break;
+            case TRYING2:
+                if (dir == Direction.UPWARD) {
+                    if (800 < len && len < 1500)
+                        next = State.PRACK4;
+
+                } else {
+                    if (800 < len && len < 1500)
+                        next = State.SESSION3;
+                }
+                break;
+            case SESSION3:
+                if (dir == Direction.UPWARD) {
+                    if (800 < len && len < 1500)
+                        next = State.PRACK4;
+                } else {
+                    if (500 < len && len < 1500)
+                        next = State.OK5;
+
+                }
+                break;
+            case PRACK4:
+                if (dir == Direction.UPWARD) {
+                    if (250 < len && len < 1500)
+                        next = State.OK5;
+                } else {
+                    if (250 < len && len < 1500)
+                        next = State.OK5;
+                }
+                break;
+            case OK5:
+                if (dir == Direction.UPWARD) {
+
+                } else {
+                    if (len < 250)
+                        next = State.RINGING6;
+                }
+                break;
+            case RINGING6:
+                //Area2
+
+                if (dir == Direction.UPWARD) {
+                    if (800 < len && len < 1500)
+                        next = State.PRACK7;
+                } else {
+                    if (400 < len && len < 1500)
+                        next = State.PRACK7;
+                }
+                break;
+            case PRACK7:
+                if (dir == Direction.UPWARD) {
+
+                } else {
+                    if (250 < len)
+                        next = State.OK8;
+                }
+                break;
+            case OK8:
+                if (dir == Direction.UPWARD) {
+                    if (400 < len && len < 1000)
+                        next = State.ACK10;
+                } else {
+                    if (400 < len && len < 1000)
+                        next = State.OK9;
+                }
+                break;
+            case OK9:
+                if (dir == Direction.UPWARD) {
+                    if (400 < len && len < 1000)
+                        next = State.ACK10;
+                } else {
+                }
+                break;
+            case ACK10:
+                if (dir == Direction.UPWARD) {
+                    if (250 < len)
+                        next = State.VOICE11;
+                } else {
+                    if (250 < len)
+                        next = State.VOICE11;
+                }
+                break;
+            case VOICE11:
+                // Area3
+                if (250 < len)
+                    next = State.VOICE11;
+
+                break;
+            case BYE12:
+                if (250 < len)
+                    next = State.OK13;
+
+                break;
+            case OK13:
+                if (250 < len)
+                    next = State.NONE;
+
+                break;
         }
-        return index;
+
+        return next;
+
     }
 
-    public void setState(State stateEnum){
-        setState(stateEnum.ordinal());
+
+    public void resetStep(){
+        step = maxStair;
     }
 
-    protected void setState(int state){
-        this.state = state;
-    }
-
-    public int getState() {
+    public State getState(){
         return state;
     }
+
+
 }
 

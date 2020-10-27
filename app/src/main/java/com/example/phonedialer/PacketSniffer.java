@@ -2,7 +2,6 @@ package com.example.phonedialer;
 
 import android.os.Build;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 
@@ -18,11 +17,11 @@ public class PacketSniffer implements Runnable {
 
     private boolean looping;
     private Process process;
-    private StateTracer tracer;
+    private final StateTracer tracer;
 
     public PacketSniffer() {
         looping = true;
-        tracer = new StateTracer();
+        tracer = new StateTracer(8);
     }
 
     private final String TAG = "sniff";
@@ -71,7 +70,7 @@ public class PacketSniffer implements Runnable {
         }
 
         //初始化
-        tracer.setState(StateTracer.State.NONE);
+        tracer.initial();
 
         // 傾聽 Stdout
         Log.d(TAG, "-- Captured Packets --");
@@ -106,9 +105,6 @@ public class PacketSniffer implements Runnable {
 
                 // TODO - 根據 IP 過濾封包
 
-                Log.d(TAG, time + "   " + (src.startsWith("192") ? "UE" : "ePDG") + " -> "
-                        + (dst.startsWith("192") ? "UE" : "ePDG") + " len = " + len );
-
                 Log.d(TAG, new StringBuilder(64).append(time)
                         .append("  ")
                         .append(src.startsWith("192") ? "UE" : "ePDG")
@@ -119,23 +115,11 @@ public class PacketSniffer implements Runnable {
                 );
 
                 // 決策樹分析
-                if (len >= 160){
-                    // TODO - 正確的判斷傳送方向
-                    int dir = dst.startsWith("192") ? StateTracer.Direction.DOWNWARD.value
-                            : StateTracer.Direction.UPWARD.value;
+                // TODO - 正確的判斷傳送方向
+                StateTracer.Direction dir = dst.startsWith("192") ? StateTracer.Direction.DOWNWARD
+                        : StateTracer.Direction.UPWARD;
+                tracer.nextState(dir, len);
 
-                    int nextState = tracer.nextState(dir, len);
-                    if ( nextState != tracer.getState() ){
-                        // 狀態改變
-                        tracer.setState(nextState);
-
-                        Log.d(TAG, "State -> "+nextState);
-
-                    }else {
-                        Log.d(TAG, "State "+tracer.getState());
-                    }
-
-                }
 
                 // Here analyze the time stamp of each pkt
                 ++pktNumber;
