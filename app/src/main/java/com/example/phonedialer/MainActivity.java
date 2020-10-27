@@ -69,26 +69,12 @@ public class MainActivity extends AppCompatActivity {
             CharSequence name = getString(R.string.channel_name);
             String description = getString(R.string.channel_description);
             int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationChannel channel = new NotificationChannel("1", name, importance);
+            NotificationChannel channel = new NotificationChannel(getString(R.string.channel_id), name, importance);
             channel.setDescription(description);
             // Register the channel with the system; you can't change the importance
             // or other notification behaviors after this
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
-        }
-
-        // 建立 Notification Channel
-        if(Build.VERSION.SDK_INT > Build.VERSION_CODES.O){
-            String channelId = "VoWifiStateChannel";
-            String channelName = "TestingNotificationChannel";
-            String channelDescription ="TestChannel";
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
-
-            NotificationChannel channel = new NotificationChannel(channelId, channelName, importance);
-            channel.setDescription(channelDescription);
-
-            NotificationManager manager = getSystemService(NotificationManager.class);
-            manager.createNotificationChannel(channel);
         }
     }
 
@@ -206,7 +192,7 @@ public class MainActivity extends AppCompatActivity {
         mobileDataTextView = findViewById(R.id.mobileTextview);
 
         // Check Connectivity at Start (a.k.a. onCreate)
-        Boolean isConnected = false, isWiFi = false, isMobile = false;
+        boolean isConnected = false, isWiFi = false, isMobile = false;
 
         ConnectivityManager cm = (ConnectivityManager) this.getSystemService(this.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();

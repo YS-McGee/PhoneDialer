@@ -1,5 +1,6 @@
 package com.example.phonedialer;
 
+import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -20,6 +21,9 @@ public class MyService extends Service {
     private TelephonyManager telephonyManager;
     private PhoneStateListener listener;
     private boolean isOnCall;
+
+    private final int notificationId_main = 666;
+    private final int notificationId_alert = 777;
 
     PacketSniffer sniffer = new PacketSniffer();
     Thread innerThread = new Thread(sniffer);
@@ -54,12 +58,34 @@ public class MyService extends Service {
         this.registerReceiver(this.bcReceiver, intentFilter);
 
         Log.d("service", "Service Created");
+
+        // 建立 Foreground Service
+        String channelId = getString(R.string.channel_id);
+        Notification notification = new NotificationCompat.Builder(this, channelId)
+                .setSmallIcon(android.R.drawable.alert_light_frame)
+                .setContentTitle(getString(R.string.channel_name))
+                .setContentText(getString(R.string.channel_description))
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .build();
+
+        startForeground(notificationId_main, notification);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d("service", "Service Started");
 
+        // 測試通知
+        createAlert();
+
+        // 執行監聽執行緒
+        innerThread.setPriority(Thread.MAX_PRIORITY);
+        innerThread.start();
+
+        return Service.START_NOT_STICKY;
+    }
+
+    private void createAlert() {
         // notification action for opening Wifi-setting
         Intent wifiIntent = new Intent(this, MainActivity.class);
         PendingIntent wifiPendingIntent = PendingIntent.getActivities(this, 0, new Intent[]{wifiIntent}, 0);
@@ -79,23 +105,7 @@ public class MyService extends Service {
         final NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
         // notificationId is a unique int for each notification that you must define
 
-        Runnable notif = new Runnable() {
-            public void run() {
-                Log.d("process", "notif thread run");
-                notificationManager.notify(1, builder.build());
-            }
-        };
-
-        // PacketSniffer sniffer = new PacketSniffer();
-        // Thread innerThread = new Thread(sniffer);
-        innerThread.setPriority(Thread.MAX_PRIORITY);
-        innerThread.start();
-
-        Thread n = new Thread(notif);
-        n.setPriority(Thread.MAX_PRIORITY);
-        n.start();
-
-        return Service.START_STICKY;
+        notificationManager.notify(notificationId_alert, builder.build());
     }
 
     @Override
