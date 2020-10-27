@@ -28,7 +28,10 @@ public class PacketSniffer implements Runnable {
     private final StateTracer tracer;
     private final String hostToken;
 
-    public PacketSniffer(String hostToken) {
+    private final MyService service;
+
+    public PacketSniffer(String hostToken, MyService service) {
+        this.service = service;
         looping = true;
         tracer = new StateTracer(8);
 
@@ -143,6 +146,7 @@ public class PacketSniffer implements Runnable {
                 break;
             }catch ( ExecutionException e){
                 Log.e(TAG, "Something went wrong.");
+                service.createAlert();
                 break;
             }catch ( InterruptedException e){
                 continue;

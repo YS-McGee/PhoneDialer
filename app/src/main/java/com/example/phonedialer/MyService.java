@@ -81,7 +81,7 @@ public class MyService extends Service {
 
         String ipToken = ip.get().split("\\.")[0];
 
-        sniffer = new PacketSniffer(ipToken);
+        sniffer = new PacketSniffer(ipToken, this);
         innerThread = new Thread(sniffer);
 
         this.bcReceiver = new CallReceiver();
@@ -108,7 +108,7 @@ public class MyService extends Service {
         Log.d("service", "Service Started");
 
         // 測試通知
-        createAlert();
+        // createAlert();
 
         // 執行監聽執行緒
         innerThread.setPriority(Thread.MAX_PRIORITY);
@@ -117,7 +117,7 @@ public class MyService extends Service {
         return Service.START_NOT_STICKY;
     }
 
-    private void createAlert() {
+    public void createAlert() {
         // notification action for opening Wifi-setting
         Intent wifiIntent = new Intent(this, MainActivity.class);
         PendingIntent wifiPendingIntent = PendingIntent.getActivities(this, 0, new Intent[]{wifiIntent}, 0);
