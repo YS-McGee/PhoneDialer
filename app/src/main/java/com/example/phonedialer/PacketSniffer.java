@@ -1,22 +1,30 @@
 package com.example.phonedialer;
 
-import android.os.Build;
+import android.telecom.Call;
 import android.util.Log;
-
-import androidx.annotation.RequiresApi;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Scanner;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class PacketSniffer implements Runnable {
 
     private boolean looping;
     private Process process;
+
+    private ExecutorService executorService;
+
     private final StateTracer tracer;
     private final String hostToken;
 
@@ -25,6 +33,8 @@ public class PacketSniffer implements Runnable {
         tracer = new StateTracer(8);
 
         this.hostToken = hostToken;
+
+        executorService = Executors.newSingleThreadExecutor();
 
         Log.d(TAG, "Host Token: "+hostToken);
     }
@@ -37,29 +47,29 @@ public class PacketSniffer implements Runnable {
             // su -c tcpdump -tttqnlS udp port 4500 -i any
     };
 
-    private double pktNumber = 0, checker;
-    int flag = 0;
-    Timer timer = new Timer();
+//    private double pktNumber = 0, checker;
+//    int flag = 0;
+//    Timer timer = new Timer();
 
-    class checkPktTask extends TimerTask {
-        @RequiresApi(api = Build.VERSION_CODES.O)
-        public void run() {
-            // Log.d("sniff", "time's up");
-            // timer.cancel(); //Terminate the timer thread
-            Log.d("sniff", Double.toString(pktNumber));
-            if (pktNumber == 0) {
-                ++flag;
-                if (flag > 50) {
-                    while (true){
-                        Log.d("sniff", "ATK!!!!!!!!!!");
-                    }
-                }
-            } else {
-                flag = 0;
-            }
-            pktNumber = 0;
-        }
-    }
+//    class checkPktTask extends TimerTask {
+//        @RequiresApi(api = Build.VERSION_CODES.O)
+//        public void run() {
+//            // Log.d("sniff", "time's up");
+//            // timer.cancel(); //Terminate the timer thread
+//            Log.d("sniff", Double.toString(pktNumber));
+//            if (pktNumber == 0) {
+//                ++flag;
+//                if (flag > 50) {
+//                    while (true){
+//                        Log.d("sniff", "ATK!!!!!!!!!!");
+//                    }
+//                }
+//            } else {
+//                flag = 0;
+//            }
+//            pktNumber = 0;
+//        }
+//    }
 
     @Override
     public void run() {
@@ -80,20 +90,15 @@ public class PacketSniffer implements Runnable {
         // 傾聽 Stdout
         Log.d(TAG, "-- Captured Packets --");
         Scanner scanner = new Scanner(process.getInputStream());
-        try {
 
+        Callable<Optional<Packet>> receivePacket = ()->{
             String timeStr;
             long time;
 
             String ip, src, dst, protocol;
+            int len;
 
-            int len, index = 1, replace_index = 1; // pkt index
-            float ftime, avg_time = 0, tmp;
-            float [] farray = new float[105];
-
-            // 輸出格式:
-            //   TT IP XX.XX.XX.XX.PORT > XX.XX.XX.XX.PORT: UDP, length NN
-            while (scanner.hasNext()) {
+            while(scanner.hasNext()){
                 timeStr = scanner.next();
                 ip = scanner.next();
                 src = scanner.next();
@@ -109,33 +114,64 @@ public class PacketSniffer implements Runnable {
                 // 非 UDP 封包
                 if (!protocol.startsWith("UDP")) continue;
 
-                // TODO - 根據 IP 過濾封包
-
                 // 解析時間
                 timeStr = timeStr.substring(timeStr.lastIndexOf(':')+1);
                 timeStr = timeStr.replace('.', '0');
                 time = Long.valueOf(timeStr);
                 time = time/10000000 + time%1000000;
 
-                Log.d(TAG, new StringBuilder(64)
-                        .append(timeStr)
-                        .append('\t')
-                        .append(time)
-                        .append("  ")
-                        .append(src.startsWith(hostToken) ? "UE" : "ePDG")
-                        .append(" -> ")
-                        .append(dst.startsWith(hostToken) ? "UE" : "ePDG")
-                        .append(" len = ")
-                        .append(len).toString()
-                );
+                return Optional.of(new Packet(time, src, dst, len));
+            }
 
-                // 決策樹分析
-                StateTracer.Direction dir = dst.startsWith(hostToken) ? StateTracer.Direction.DOWNWARD
-                        : StateTracer.Direction.UPWARD;
-                tracer.nextState(dir, len);
+            return Optional.empty();
+        };
 
-                // Here analyze the time stamp of each pkt
-                ++pktNumber;
+        long timeout = 5;
+        Optional<Packet> packetOptional;
+        Packet packet;
+
+        // 輸出格式:
+        //   TT IP XX.XX.XX.XX.PORT > XX.XX.XX.XX.PORT: UDP, length NN
+        while (scanner.hasNext()) {
+
+            try{
+                packetOptional = executorService.submit(receivePacket).get( timeout, TimeUnit.SECONDS);
+            }catch ( TimeoutException e){
+                Log.e(TAG, "Next Packet Timeout");
+
+                // TODO notification
+                break;
+            }catch ( ExecutionException e){
+                Log.e(TAG, "Something went wrong.");
+                break;
+            }catch ( InterruptedException e){
+                continue;
+            }catch ( CancellationException e){
+                break;
+            }
+
+            if (!packetOptional.isPresent()) break;
+            else packet = packetOptional.get();
+
+            StateTracer.Direction dir = packet.src.startsWith(hostToken) ? StateTracer.Direction.UPWARD
+                    : StateTracer.Direction.UPWARD;
+
+            Log.d(TAG, new StringBuilder(64)
+                    .append(packet.time)
+                    .append("  ")
+                    .append(dir== StateTracer.Direction.UPWARD ? "UE" : "ePDG")
+                    .append(" -> ")
+                    .append(dir== StateTracer.Direction.DOWNWARD ? "UE" : "ePDG")
+                    .append(" len = ")
+                    .append(packet.length).toString()
+            );
+
+            // 決策樹分析
+            tracer.nextState(dir, packet.length);
+
+
+            // Here analyze the time stamp of each pkt
+//                ++pktNumber;
 
 //                if (index <= 100) {
 //                    farray[index] = ftime;
@@ -151,11 +187,11 @@ public class PacketSniffer implements Runnable {
 //                        replace_index = 1;
 //                    }
 //                }
-                // Log.d( "avg", "avg: "+ avg_time + " ftime: "  + ftime + " , index: " + (index-1) + " , replace_index: " + replace_index);
-            }
-            Log.d(TAG, "-- Captured Packets end --");
+            // Log.d( "avg", "avg: "+ avg_time + " ftime: "  + ftime + " , index: " + (index-1) + " , replace_index: " + replace_index);
+        }
+        scanner.close();
 
-        } catch (NoSuchElementException e) {}
+        Log.d(TAG, "-- Captured Packets end --");
 
 
         if (BuildConfig.DEBUG) {
@@ -171,7 +207,7 @@ public class PacketSniffer implements Runnable {
             } catch (IOException e) {}
             Log.d(TAG, "-- Error Channel ends --");
         }
-        timer.cancel();
+//        timer.cancel();
         Log.d(TAG, "Stopped.");
     }
 
