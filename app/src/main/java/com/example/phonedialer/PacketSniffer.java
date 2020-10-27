@@ -1,12 +1,10 @@
 package com.example.phonedialer;
 
-import android.telecom.Call;
 import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
@@ -14,7 +12,6 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -33,7 +30,7 @@ public class PacketSniffer implements Runnable {
     public PacketSniffer(String hostToken, MyService service) {
         this.service = service;
         looping = true;
-        tracer = new StateTracer(8);
+        tracer = new StateTracer(8, 4);
 
         this.hostToken = hostToken;
 
@@ -49,30 +46,6 @@ public class PacketSniffer implements Runnable {
             //,"-c 10"
             // su -c tcpdump -tttqnlS udp port 4500 -i any
     };
-
-//    private double pktNumber = 0, checker;
-//    int flag = 0;
-//    Timer timer = new Timer();
-
-//    class checkPktTask extends TimerTask {
-//        @RequiresApi(api = Build.VERSION_CODES.O)
-//        public void run() {
-//            // Log.d("sniff", "time's up");
-//            // timer.cancel(); //Terminate the timer thread
-//            Log.d("sniff", Double.toString(pktNumber));
-//            if (pktNumber == 0) {
-//                ++flag;
-//                if (flag > 50) {
-//                    while (true){
-//                        Log.d("sniff", "ATK!!!!!!!!!!");
-//                    }
-//                }
-//            } else {
-//                flag = 0;
-//            }
-//            pktNumber = 0;
-//        }
-//    }
 
     @Override
     public void run() {
