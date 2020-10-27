@@ -120,8 +120,10 @@ public class PacketSniffer implements Runnable {
                 Log.e(TAG, "Something went wrong.");
                 break;
             }catch ( InterruptedException e){
+                Log.e(TAG, "InterrruptedException");
                 continue;
             }catch ( CancellationException e){
+                Log.e(TAG, "CancellationException");
                 break;
             }
 
@@ -145,7 +147,10 @@ public class PacketSniffer implements Runnable {
             StateTracer.State old = tracer.getState();
             StateTracer.State next = tracer.nextState(dir, packet.length);
 
-            if (old != next){
+            if (next == StateTracer.State.ERROR14 || tracer.isTimeout()){
+                Log.d(TAG, "Error detected.");
+                service.createAlert();
+            }else if (old != next){
                 service.updateStateInNotification(next.toString());
             }
 

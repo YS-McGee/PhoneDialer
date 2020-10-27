@@ -34,12 +34,14 @@ public class StateTracer{
     private int floor;
 
     private boolean acquireBye;
+    private boolean timeout;
     
     private State state;
 
     public StateTracer(int restoreStair, int errorStep){
         maxStair = restoreStair;
         maxErrorStair = errorStep;
+        timeout = false;
 
         initial();
     }
@@ -60,6 +62,7 @@ public class StateTracer{
 
         if (next == State.ERROR14){
             --errorStep;
+            timeout = false;
 
             if (errorStep < 0){
                 return State.ERROR14;
@@ -75,12 +78,14 @@ public class StateTracer{
             }
 
             state = next;
+            timeout = false;
             resetStep();
 
         }else if (state != floorArr[floor]){
             if (step < 0){
                 state = floorArr[floor];
                 Log.d(TAG, "State timeout -> "+state);
+                timeout = true;
             }
             --step;
         }
@@ -237,6 +242,10 @@ public class StateTracer{
 
     }
 
+
+    public boolean isTimeout(){
+        return timeout;
+    }
 
     public void resetStep(){
         step = maxStair;

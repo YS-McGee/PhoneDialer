@@ -132,6 +132,7 @@ public class MyService extends Service {
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setContentIntent(wifiPendingIntent)
                 .setAutoCancel(true)
+                .setVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 })
                 .addAction(R.drawable.ic_launcher_foreground, getString(R.string.setting), actionIntent);
 
         final NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
