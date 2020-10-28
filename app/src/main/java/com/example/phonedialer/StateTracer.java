@@ -27,9 +27,6 @@ public class StateTracer{
     private final int maxStair;
     private int step;
 
-    private final int maxErrorStair;
-    private int errorStep;
-
     private final State[] floorArr = {State.NONE, State.RINGING6, State.VOICE11};
     private int floor;
 
@@ -40,7 +37,6 @@ public class StateTracer{
 
     public StateTracer(int restoreStair, int errorStep){
         maxStair = restoreStair;
-        maxErrorStair = errorStep;
         timeout = false;
 
         initial();
@@ -51,7 +47,6 @@ public class StateTracer{
         floor = 0;
 
         step = maxStair;
-        errorStep = maxErrorStair;
     }
 
     public State nextState(Direction direction, int length){
@@ -59,18 +54,8 @@ public class StateTracer{
 
         Log.d(TAG, "State -> "+next);
 
-
-        if (next == State.ERROR14){
-            --errorStep;
-            timeout = false;
-
-            if (errorStep < 0){
-                return State.ERROR14;
-            }
-        }else if (next != state)
+        if (next != state)
         {
-            errorStep = maxErrorStair;
-
             int target = Arrays.binarySearch(floorArr, next);
 
             if (target >= 0){
@@ -88,6 +73,7 @@ public class StateTracer{
                 timeout = true;
             }
             --step;
+            timeout = false;
         }
 
         return next;
@@ -242,10 +228,6 @@ public class StateTracer{
 
     }
 
-
-    public boolean isTimeout(){
-        return timeout;
-    }
 
     public void resetStep(){
         step = maxStair;
