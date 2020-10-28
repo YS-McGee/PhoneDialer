@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
+import android.net.LinkAddress;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.os.IBinder;
@@ -19,6 +20,7 @@ import android.widget.Toast;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -71,17 +73,18 @@ public class MyService extends Service {
         }
 
         Optional<String >ip = manager.getLinkProperties(networkOptional.get()).getLinkAddresses().stream()
-                .map( l -> l.getAddress())
+                .map(LinkAddress::getAddress)
                 .filter( k -> !k.isLoopbackAddress())
-                .map( i -> i.getHostAddress())
-                .filter( h -> h.indexOf(":")<0)
+                .map(InetAddress::getHostAddress)
+                .filter( h -> !h.contains(":"))
                 .findFirst();
 
         if (!ip.isPresent()){
             Log.e("service", "Unable to get IP address");
+            ipToken = "192";
+        }else{
+            ipToken = ip.get().split("\\.")[0];
         }
-
-        ipToken = ip.get().split("\\.")[0];
 
         this.bcReceiver = new CallReceiver();
         final IntentFilter intentFilter = new IntentFilter();
@@ -129,16 +132,22 @@ public class MyService extends Service {
         Intent broadcastWaitIntent = new Intent(this, NotifReceiver.class).setAction(getString(R.string.notification_option_keepWait));
         PendingIntent actionWaitIntent = PendingIntent.getBroadcast(this, 1, broadcastWaitIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+
         final NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "1")
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentTitle("ALERT!!")
                 .setContentText("Your Network Traffic is under attack!!")
                 .setPriority(NotificationCompat.PRIORITY_MAX)
-                .setContentIntent(wifiPendingIntent)
+                .setContentIntent(pendingIntent)
+                // .setFullScreenIntent(PendingIntent.getActivity(this, 0, wifiIntent, PendingIntent.FLAG_UPDATE_CURRENT),true)
                 .setAutoCancel(true)
                 .setVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 })
-                .addAction(R.drawable.ic_launcher_foreground, getString(R.string.setting), actionIntent)
-                .setFullScreenIntent(PendingIntent.getActivities(this, 0, new Intent[]{new Intent(this, MainActivity.class)}, PendingIntent.FLAG_UPDATE_CURRENT),true);
+                .addAction(R.drawable.ic_launcher_foreground, getString(R.string.setting), actionIntent);
 
         final NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
         // notificationId is a unique int for each notification that you must define
