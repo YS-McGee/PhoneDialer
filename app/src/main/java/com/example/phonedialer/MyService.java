@@ -96,7 +96,7 @@ public class MyService extends Service {
                 .setSmallIcon(android.R.drawable.alert_light_frame)
                 .setContentTitle(getString(R.string.channel_name))
                 .setContentText(getString(R.string.channel_description))
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setPriority(NotificationCompat.PRIORITY_MAX)
                 .build();
 
         startForeground(notificationId_main, notification);
@@ -107,7 +107,7 @@ public class MyService extends Service {
         Log.d("service", "Service Started");
 
         // 測試通知
-        createAlert();
+        // createAlert();
 
         // 執行監聽執行緒
         sniffer = new PacketSniffer(ipToken, this);
@@ -136,9 +136,9 @@ public class MyService extends Service {
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setContentIntent(wifiPendingIntent)
                 .setAutoCancel(true)
-                .setVibrate(new long[] { 300, 300, 300 })
+                .setVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 })
                 .addAction(R.drawable.ic_launcher_foreground, getString(R.string.setting), actionIntent)
-                .addAction(R.drawable.ic_launcher_background, getString(R.string.notification_option_keepWait), actionWaitIntent);
+                .setFullScreenIntent(PendingIntent.getActivities(this, 0, new Intent[]{new Intent(this, MainActivity.class)}, PendingIntent.FLAG_UPDATE_CURRENT),true);
 
         final NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
         // notificationId is a unique int for each notification that you must define
