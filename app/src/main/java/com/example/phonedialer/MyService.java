@@ -28,8 +28,10 @@ public class MyService extends Service {
     private PhoneStateListener listener;
     private boolean isOnCall;
 
-    private final int notificationId_main = 666;
-    private final int notificationId_alert = 777;
+    public final static int notificationId_main = 666;
+    public final static int notificationId_alert = 777;
+
+    private String ipToken;
 
     PacketSniffer sniffer;
     Thread innerThread;
@@ -79,10 +81,7 @@ public class MyService extends Service {
             Log.e("service", "Unable to get IP address");
         }
 
-        String ipToken = ip.get().split("\\.")[0];
-
-        sniffer = new PacketSniffer(ipToken, this);
-        innerThread = new Thread(sniffer);
+        ipToken = ip.get().split("\\.")[0];
 
         this.bcReceiver = new CallReceiver();
         final IntentFilter intentFilter = new IntentFilter();
@@ -108,9 +107,11 @@ public class MyService extends Service {
         Log.d("service", "Service Started");
 
         // 測試通知
-        // createAlert();
+        createAlert();
 
         // 執行監聽執行緒
+        sniffer = new PacketSniffer(ipToken, this);
+        innerThread = new Thread(sniffer);
         innerThread.setPriority(Thread.MAX_PRIORITY);
         innerThread.start();
 
@@ -122,8 +123,11 @@ public class MyService extends Service {
         Intent wifiIntent = new Intent(this, MainActivity.class);
         PendingIntent wifiPendingIntent = PendingIntent.getActivities(this, 0, new Intent[]{wifiIntent}, 0);
 
-        Intent broadcastIntent = new Intent(this, NotifReceiver.class);
+        Intent broadcastIntent = new Intent(this, NotifReceiver.class).setAction(getString(R.string.setting));
         PendingIntent actionIntent = PendingIntent.getBroadcast(this, 0, broadcastIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Intent broadcastWaitIntent = new Intent(this, NotifReceiver.class).setAction(getString(R.string.notification_option_keepWait));
+        PendingIntent actionWaitIntent = PendingIntent.getBroadcast(this, 1, broadcastWaitIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         final NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "1")
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
@@ -132,8 +136,9 @@ public class MyService extends Service {
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setContentIntent(wifiPendingIntent)
                 .setAutoCancel(true)
-                .setVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 })
-                .addAction(R.drawable.ic_launcher_foreground, getString(R.string.setting), actionIntent);
+                .setVibrate(new long[] { 300, 300, 300 })
+                .addAction(R.drawable.ic_launcher_foreground, getString(R.string.setting), actionIntent)
+                .addAction(R.drawable.ic_launcher_background, getString(R.string.notification_option_keepWait), actionWaitIntent);
 
         final NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
         // notificationId is a unique int for each notification that you must define
@@ -142,6 +147,8 @@ public class MyService extends Service {
     }
 
     void updateStateInNotification(String stateInfo){
+        if (stateInfo == null) stateInfo = getString(R.string.channel_description);
+
         String channelId = getString(R.string.channel_id);
         Notification notification = new NotificationCompat.Builder(this, channelId)
                 .setSmallIcon(android.R.drawable.alert_light_frame)

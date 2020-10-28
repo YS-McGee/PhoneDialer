@@ -163,6 +163,9 @@ public class PacketSniffer implements Runnable {
             if (old != next){
                 service.updateStateInNotification(next.toString());
             }
+            if (next == StateTracer.State.NONE){
+                service.updateStateInNotification(null);
+            }
 
             // Here analyze the time stamp of each pkt
 //                ++pktNumber;

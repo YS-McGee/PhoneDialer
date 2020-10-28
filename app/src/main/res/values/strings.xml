@@ -24,4 +24,5 @@
 
     <string name="setting">Open Setting</string>
     <string name="notfication_state_description">\"State: \"</string>
+    <string name="notification_option_keepWait">Keep Waiting</string>
 </resources>
