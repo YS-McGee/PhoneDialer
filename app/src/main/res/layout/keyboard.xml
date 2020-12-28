@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <EditText
+                android:id="@+id/phoneNumberField"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:hint="@string/hint"
+                android:inputType="phone" />
+
+            <ImageButton
+                android:id="@+id/buttonDelete"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="12sp"
+                android:layout_weight="0"
+                android:background="@android:drawable/ic_input_delete"
+                android:backgroundTint="@android:color/darker_gray"
+                android:contentDescription="Delete"
+                android:onClick="onNumberButtonClick"
+                android:scaleType="centerInside" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <Button
+                android:id="@+id/num1"
+                style="@style/KeyboardNumber"
+                android:text="1" />
+
+            <Button
+                android:id="@+id/num2"
+                style="@style/KeyboardNumber"
+                android:text="2" />
+
+            <Button
+                android:id="@+id/num3"
+                style="@style/KeyboardNumber"
+                android:text="3" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <Button
+                android:id="@+id/num4"
+                style="@style/KeyboardNumber"
+                android:text="4" />
+
+            <Button
+                android:id="@+id/num5"
+                style="@style/KeyboardNumber"
+                android:text="5" />
+
+            <Button
+                android:id="@+id/num6"
+                style="@style/KeyboardNumber"
+                android:text="6" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <Button
+                android:id="@+id/num7"
+                style="@style/KeyboardNumber"
+                android:text="7" />
+
+            <Button
+                android:id="@+id/num8"
+                style="@style/KeyboardNumber"
+                android:text="8" />
+
+            <Button
+                android:id="@+id/num9"
+                style="@style/KeyboardNumber"
+                android:text="9" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <Button
+                android:id="@+id/charStar"
+                style="@style/KeyboardNumber"
+                android:text="*" />
+
+            <Button
+                android:id="@+id/num0"
+                style="@style/KeyboardNumber"
+                android:text="0" />
+
+            <Button
+                android:id="@+id/charSharp"
+                style="@style/KeyboardNumber"
+                android:text="#" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="16sp">
+
+            <Button
+                android:id="@+id/buttonDial"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:autoSizeMaxTextSize="30sp"
+                android:autoSizeTextType="uniform"
+                android:background="@color/colorAccent"
+                android:text="@string/dial"
+                android:textColor="@color/white" />
+        </TableRow>
+    </TableLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

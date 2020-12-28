@@ -14,11 +14,11 @@ public class NotifReceiver extends BroadcastReceiver {
     public void onReceive (Context context , Intent intent) {
         //Log.d("broadcast", intent.getAction());
 
-        if(intent.getAction() == context.getString(R.string.setting)){
+        if (intent.getAction().equals(context.getString(R.string.setting))) {
             Intent Mintent = new Intent(ACTION_WIFI_SETTINGS);
             Mintent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(Mintent);
-        }else{
+        } else {
             NotificationManagerCompat.from(context).cancel(MyService.notificationId_alert);
         }
     }

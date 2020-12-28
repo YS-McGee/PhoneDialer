@@ -7,4 +7,18 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="KeyboardNumber" parent="TextAppearance.AppCompat.Button">
+        <item name="android:layout_width">0sp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:textColor">@color/colorAccent</item>
+        <item name="android:textSize">32sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:editable">false</item>
+        <item name="android:clickable">true</item>
+        <item name="android:background">#00FFFFFF</item>
+        <item name="android:onClick">onNumberButtonClick</item>
+        <item name="android:gravity">center</item>
+    </style>
+
 </resources>
